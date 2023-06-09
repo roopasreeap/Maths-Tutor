@@ -1,3 +1,27 @@
+###########################################################################
+#    Maths Tutor
+#
+#    Copyright (C) 2022-2023 Roopasree A P <roopasreeap@gmail.com>
+#    Copyright (C) 2022-2023 Roopasree A P <roopasreeap@gmail.com>
+#    
+#    
+#    This project is Supervised by Zendalona(2022-2023)
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+###########################################################################
+
+
 import gi
 import time
 import speechd
@@ -14,58 +38,87 @@ class MyWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Label and Text Field Example")
         self.set_border_width(10)
-
+        #Create a vertical box layout
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        # Add the VBox container to the main window
         self.add(vbox)
         
         welcome_message = "Welcome to maths tutor!\nPress enter to start "
         
-        # create label
+        # create  a Gtk label
         self.label = Gtk.Label()
+        # Set the text of the label to the value of welcome_message
         self.label.set_text(welcome_message)
+        # Modify the font of the label
         self.modify_font(Pango.FontDescription("Sans 40"))
         
         
-        font_color = "#000000" 
+        # Define the font color
+        font_color = "#0603f0"
+        # Define the background color
         background_color = "#ffffff"
+        # Set the font color
         self.modify_fg(Gtk.StateFlags.NORMAL, Gdk.color_parse(font_color))
+        # Set the background color
         self.modify_bg(Gtk.StateFlags.NORMAL, Gdk.color_parse(background_color))
+        # Add the label to the vbox container
         vbox.pack_start(self.label, True, True, 0)
-
-        hbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-
-        fix1 = Gtk.Fixed()
-        hbox.pack_start(fix1, True, True, 0)
         
-        self.entry = Gtk.Entry()
-        self.entry.connect("activate", self.on_entry_activated)
-        hbox.pack_start(self.entry, False, False, 0)
-
-        fix2 = Gtk.Fixed()
-        hbox.pack_start(fix2, True, True, 0)
         
-        hbox.set_hexpand(False)
+        #Create a horizontal box layout 
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
 
+        #fix1 = Gtk.Fixed()
+        #hbox.pack_start(fix1, True, True, 0)
+        # Add the hbox to the vbox container
         vbox.pack_start(hbox, False, False, 0)
 
+       
+        #Create a Gtk.Entry widget and assign it to self.entry
+        self.entry = Gtk.Entry()
+        # Connect the "activate" signal of the entry widget to the self.on_entry_activated method
+        self.entry.connect("activate", self.on_entry_activated)
+        #Add entry to horizontal box
+        hbox.pack_start(self.entry, False, False, 0)
+
+        #fix2 = Gtk.Fixed()
+        #hbox.pack_start(fix2, True, True, 0)
+        
+        #hbox.set_hexpand(False)
+
+        
         #Create multiple instances of GtkImage and add them to the vertical box
         self.image = Gtk.Image.new_from_file("/home/roopasree/Desktop/Game/Image/positive4.png")
         vbox.pack_start(self.image, True, True, 0)
+        
+        
+        #Create a button
+        about_button=Gtk.Button(label="About")
+        about_button.connect("clicked",self.on_about_clicked)
+        about_button.set_size_request(1,1)
+        hbox.pack_start(about_button, True, True, 0)
+        
+        
+
+        
 
         self.current_question_index = -1
         self.wrong=False
-        
+        # Create a playbin element with the name 'player' and assign it to self.player
         self.player = Gst.ElementFactory.make('playbin', 'player')
         
         # Playing starting sound
         self.play_file('start.ogg')
         
+        
+        # Initialize speechd client
         self.spd_cli = speechd.Client("MathTeacher")
         self.spd_cli.set_output_module("rhvoice")
         self.spd_cli.speak(welcome_message)
         
         self.connect('delete-event', self.on_destroy)
         self.connect('destroy', self.on_destroy)
+        
 
     
     def play_file(self, filename):
@@ -113,7 +166,7 @@ class MyWindow(Gtk.Window):
                 elif time_taken < time_alotted+2:
                     self.spd_cli.speak("Very good!")
                     self.label.set_text("Very good!")
-                    self.image.set_from_file("/home/roopasree/Desktop/Game/Image/positive1.png")
+                    self.image.set_from_file("/home/roopasree/Desktop/Game/Image/positive5.png")
                     self.play_file('very_good.ogg')
                 elif time_taken < time_alotted+4:
                     self.spd_cli.speak("Good!")
@@ -195,6 +248,28 @@ class MyWindow(Gtk.Window):
     def on_destroy(self, widget=None, *data):
         print("CLOS")
         self.spd_cli.close()
+        
+
+    def show_about_dialog(self):
+        about_dialog = Gtk.AboutDialog()
+
+        # Set the relevant properties of the about dialog
+        about_dialog.set_program_name("MATHS TUTOR GAME\n 0.1 \n\nMATHS TUTOR is a game to develop students calculation ability in maths and to judge themselves.\n Which is helpful to the students who have basic knowledge in maths. \n They  want to answer the questions they got and can lead into progress if they can answer the questions correctly.  \n\n   Copyright(C) 2022-2023 ROOPASREE A P <roopasreeap@gmail.com>\n\n   Supervised by  Zendalona(2022-2023)\n\n This program is free software you can redistribute it and or modify \nit under the terms of GNU General Public License as published by the free software foundation \n either gpl3 of the license.This program is distributed in the hope that it will be useful,\n but without any warranty without even the implied warranty of merchantability or fitness for a particular purpose.\n see the GNU General Public License for more details") 
+        
+        #self.set_version("")
+        
+        about_dialog.set_website_label("GNU General Public License,version 0.1\n\n" "Visit MATHS TUTOR Home page")
+        
+        about_dialog.set_website("http://wwww,zendalona.com//MATHS TUTOR")
+        about_dialog.set_authors(["Roopasree A P"])
+        about_dialog.set_documenters(["Roopasree A P"])
+        about_dialog.set_artists(["Nalin Sathyan" ,"Dr.Saritha Namboodiri", "Subha I N", "Bhavya P V", "K.Sathyaseelan"])
+        
+        about_dialog.run()
+        about_dialog.destroy()
+
+    def on_about_clicked(self,button):
+         self.show_about_dialog()
 
 
 def main():
