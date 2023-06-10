@@ -108,10 +108,16 @@ class MyWindow(Gtk.Window):
         hbox2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
         
         #Create user guide button
-        about_button=Gtk.Button(label="User-Guide")
-        about_button.connect("clicked",self.on_user_guide_clicked)
-        about_button.set_size_request(1,1)
-        hbox2.pack_start(about_button, True, True, 0)
+        user_guide_button=Gtk.Button(label="User-Guide")
+        #user_guide__button.connect("clicked",self.on_user_guide_clicked)
+        user_guide_button.set_size_request(1,1)
+        hbox2.pack_start(user_guide_button, True, True, 0)
+        
+        # Create Choose_a_file button
+        choose_a_file_button=Gtk.Button(label="Choose-a-file")
+        choose_a_file_button.connect("clicked",self.on_choose_a_file_clicked)
+        choose_a_file_button.set_size_request(1,1)
+        hbox2.pack_start(choose_a_file_button, True, True, 0)
 
 
         
@@ -121,6 +127,7 @@ class MyWindow(Gtk.Window):
         about_button.set_size_request(1,1)
         hbox2.pack_start(about_button, True, True, 0)
         
+        # Add the hbox2 to the vbox container
         vbox.pack_start(hbox2, True, True, 0)
         
         
@@ -145,35 +152,42 @@ class MyWindow(Gtk.Window):
         self.connect('delete-event', self.on_destroy)
         self.connect('destroy', self.on_destroy)
         
-        self.set_question_file(self.cwd+"/calculation.txt")
+        self.load_question_file(self.cwd+"/calculation.txt")
+
 
         
 
-    
+    #Function to play sounds
     def play_file(self, filename):
         file_path_and_name = 'file:///'+self.cwd+'/sounds/'+filename
         self.player.set_state(Gst.State.READY)
         self.player.set_property('uri',file_path_and_name)
         self.player.set_state(Gst.State.PLAYING)
-
+    
+    
+    #Function to set image from file 
     def set_image(self, filename):
 	    self.image.set_from_file(self.cwd+"/Image/"+filename);
-        
-    def set_question_file(self, file_path):
+   
+   
+    #Function to read the questions fromt the file
+    def load_question_file(self, file_path):
         self.list = []
-
+        self.current_question_index = -1
+        self.wrong=False
         with open(file_path, "r") as file:
             for line in file:
                 stripped_line = line.strip()
                 self.list.append(stripped_line)
-
+    
+    
+    # Function to covert the signs to text
     def convert_signs(self, text):
         return text.replace("+"," plus ").replace("-"," minus ").replace("x"," multiply ").replace("/"," devided by ")
 
+    
+    # Function to display the question and corresponding images and sounds
     def on_entry_activated(self,entry):
-        
-
-        
         if self.current_question_index == -1:
             self.next_question()
             
@@ -230,15 +244,14 @@ class MyWindow(Gtk.Window):
                 GLib.timeout_add_seconds(3,self.next_question)
                 self.entry.set_text("")
             
-            
+    
+    # Function to set next question        
     def next_question(self):
         self.time_start = time.time()
         self.entry.grab_focus()
         
-        
         if self.wrong==True:
             self.label.set_text(self.question)
-            
             self.announce_question(self.question, self.make_sound)
             self.set_image("neg5.png")
             self.wrong=False
@@ -305,6 +318,20 @@ class MyWindow(Gtk.Window):
     def on_user_guide_clicked(self,button):
          print("USER-GUIDE")
 
+
+    def on_choose_a_file_clicked(self,widget):
+        dialog = Gtk.FileChooserDialog(title="open", parent = self, action = Gtk.FileChooserAction.OPEN)
+        dialog.add_buttons(Gtk.STOCK_CANCEL,Gtk.ResponseType.CANCEL,Gtk.STOCK_OPEN,Gtk.ResponseType.OK)
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            filename = dialog.get_filename()
+            self.load_question_file(filename)
+            self.label.set_text(self.welcome_message)
+            self.spd_cli.speak(self.welcome_message)
+            self.entry.grab_focus()
+            print(filename)
+        
+        dialog.destroy()
 
 def main():
     Gst.init(None)
