@@ -44,14 +44,14 @@ class MyWindow(Gtk.Window):
         # Add the VBox container to the main window
         self.add(vbox)
         
-        welcome_message = "Welcome to maths tutor!\nPress enter to start "
+        self.welcome_message = "Welcome to maths tutor!\nPress enter to start "
         
         
         # create  a Gtk label
         self.label = Gtk.Label()
         
         # Set the text of the label to the value of welcome_message
-        self.label.set_text(welcome_message)
+        self.label.set_text(self.welcome_message)
         
         # Modify the font of the label
         self.modify_font(Pango.FontDescription("Sans 40"))
@@ -114,10 +114,10 @@ class MyWindow(Gtk.Window):
         hbox2.pack_start(user_guide_button, True, True, 0)
         
         # Create Choose_a_file button
-        choose_a_file_button=Gtk.Button(label="Choose-a-file")
-        choose_a_file_button.connect("clicked",self.on_choose_a_file_clicked)
-        choose_a_file_button.set_size_request(1,1)
-        hbox2.pack_start(choose_a_file_button, True, True, 0)
+        Load_Questions_button=Gtk.Button(label="Load Questions")
+        Load_Questions_button.connect("clicked",self.on_Load_Questions_clicked)
+        Load_Questions_button.set_size_request(1,1)
+        hbox2.pack_start(Load_Questions_button, True, True, 0)
 
 
         
@@ -126,6 +126,11 @@ class MyWindow(Gtk.Window):
         about_button.connect("clicked",self.show_about_dialog)
         about_button.set_size_request(1,1)
         hbox2.pack_start(about_button, True, True, 0)
+        
+        # Create close button
+        Close_button = Gtk.Button(label="Close")
+        Close_button.connect("clicked",self.window_close)
+        hbox2.pack_start(Close_button, True, True, 0)
         
         # Add the hbox2 to the vbox container
         vbox.pack_start(hbox2, True, True, 0)
@@ -147,12 +152,12 @@ class MyWindow(Gtk.Window):
         # Initialize speechd client
         self.spd_cli = speechd.Client("MathTeacher")
         self.spd_cli.set_output_module("rhvoice")
-        self.spd_cli.speak(welcome_message)
+        self.spd_cli.speak(self.welcome_message)
         
         self.connect('delete-event', self.on_destroy)
         self.connect('destroy', self.on_destroy)
         
-        self.load_question_file(self.cwd+"/calculation.txt")
+        self.load_question_file(self.cwd+"/data.txt")
 
 
         
@@ -319,7 +324,7 @@ class MyWindow(Gtk.Window):
          print("USER-GUIDE")
 
 
-    def on_choose_a_file_clicked(self,widget):
+    def on_Load_Questions_clicked(self,widget):
         dialog = Gtk.FileChooserDialog(title="open", parent = self, action = Gtk.FileChooserAction.OPEN)
         dialog.add_buttons(Gtk.STOCK_CANCEL,Gtk.ResponseType.CANCEL,Gtk.STOCK_OPEN,Gtk.ResponseType.OK)
         response = dialog.run()
@@ -332,6 +337,10 @@ class MyWindow(Gtk.Window):
             print(filename)
         
         dialog.destroy()
+        
+    # Function to close the window
+    def window_close(self,button) :
+        self.destroy()
 
 def main():
     Gst.init(None)
