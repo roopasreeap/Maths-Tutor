@@ -42,6 +42,8 @@ class MyWindow(Gtk.Window):
         
         #Create a vertical box layout
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+
+        vbox2 = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
         
         # Add the VBox container to the main window
         self.add(vbox)
@@ -56,7 +58,7 @@ class MyWindow(Gtk.Window):
         self.label.set_text(self.welcome_message)
         
         # Modify the font of the label
-        self.modify_font(Pango.FontDescription("Sans 40"))
+        vbox2.modify_font(Pango.FontDescription("Sans 40"))
         
         
         
@@ -67,13 +69,13 @@ class MyWindow(Gtk.Window):
         background_color = "#ffffff"
         
         # Set the font color
-        self.modify_fg(Gtk.StateFlags.NORMAL, Gdk.color_parse(font_color))
+        vbox2.modify_fg(Gtk.StateFlags.NORMAL, Gdk.color_parse(font_color))
         
         # Set the background color
-        self.modify_bg(Gtk.StateFlags.NORMAL, Gdk.color_parse(background_color))
+        vbox2.modify_bg(Gtk.StateFlags.NORMAL, Gdk.color_parse(background_color))
         
         # Add the label to the vbox container
-        vbox.pack_start(self.label, True, True, 0)
+        vbox2.pack_start(self.label, True, True, 0)
         
         
         #Create a horizontal box layout 
@@ -83,7 +85,7 @@ class MyWindow(Gtk.Window):
         hbox.pack_start(fix1, True, True, 0)
         
         #Add the hbox to the vbox container
-        vbox.pack_start(hbox, False, False, 0)
+        vbox2.pack_start(hbox, False, False, 0)
 
        
         #Create a Gtk.Entry widget and assign it to self.entry
@@ -104,7 +106,9 @@ class MyWindow(Gtk.Window):
         #Create multiple instances of GtkImage and add them to the vertical box
         self.image = Gtk.Image()
         self.set_image("positive4.png")
-        vbox.pack_start(self.image, True, True, 0)
+        vbox2.pack_start(self.image, True, True, 0)
+
+        vbox.pack_start(vbox2, True, True, 0)
         
         #Horizontal box for About and User-Guide
         hbox2 = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
@@ -135,7 +139,8 @@ class MyWindow(Gtk.Window):
         hbox2.pack_start(Close_button, True, True, 0)
         
         # Add the hbox2 to the vbox container
-        vbox.pack_start(hbox2, True, True, 0)
+        vbox.pack_start(hbox2, False, True, 0)
+
         
         
 
