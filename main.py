@@ -33,6 +33,8 @@ import re
 import os
 import threading
 
+import random
+
 class MyWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Maths-Tutor")
@@ -264,8 +266,15 @@ class MyWindow(Gtk.Window):
             self.current_question_index = self.current_question_index + 1
             if self.current_question_index < len(self.list)-1:
                 print(len(self.list))
-                self.question = self.list[self.current_question_index].split("===")[0]
-                self.answer = self.list[self.current_question_index].split("===")[1]
+                if("?" in self.list[self.current_question_index]):
+                    question_to_pass = self.list[self.current_question_index].split("===")[0]
+                    print("Question_to_pass : "+question_to_pass)
+                    self.question = self.question_parser(question_to_pass)
+                    self.answer = str(eval(self.question))
+                else:
+                    self.question = self.list[self.current_question_index].split("===")[0]
+                    self.answer = self.list[self.current_question_index].split("===")[1]
+
                 self.make_sound = self.list[self.current_question_index].split("===")[3]
                 self.label.set_text(self.question)
                 #self.announce_question(self.question, self.make_sound)
@@ -280,6 +289,48 @@ class MyWindow(Gtk.Window):
                 self.set_image("positive7.png")
                 
                 
+    def get_randome_number(self, value1, value2):
+        if(int(value1) < int(value2)):
+            return str(random.randint(int(value1),int(value2)))
+        else:
+            return str(random.randint(int(value2),int(value1)))
+
+
+    def question_parser(self, question):
+        first = True
+        second = False
+        digit_one = ""
+        digit_two = ""
+        output = ""
+        for i in range(0, len(question)):
+            item = question[i]
+
+            if(item.isdigit()):
+                if(second==False):
+                    digit_one = digit_one+item;
+                else:
+                    digit_two = digit_two+item;
+            elif(item == ","):
+                second=True
+            else:
+                second=False
+                if(digit_two != ""):
+                    output = output+self.get_randome_number(digit_one, digit_two)
+                else:
+                    output = output+digit_one
+                output = output+item
+
+                digit_one = ""
+                digit_two = ""
+
+            if(i==len(question)-1):
+                if(digit_one != ""):
+                    if(digit_two != ""):
+                        output = output+self.get_randome_number(digit_one, digit_two)
+                    else:
+                        output = output+digit_one
+        return output;
+
     def announce_question(self, question, make_sound):
         print(question, make_sound)
         if(make_sound == '1'):
