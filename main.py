@@ -32,7 +32,7 @@ from gi.repository import Gst
 import re
 import os
 import threading
-
+import math
 import random
 
 class MyWindow(Gtk.Window):
@@ -124,8 +124,6 @@ class MyWindow(Gtk.Window):
         Load_Questions_button.connect("clicked",self.on_Load_Questions_clicked)
         Load_Questions_button.set_size_request(1,1)
         hbox2.pack_start(Load_Questions_button, True, True, 0)
-
-
         
         #Create about button
         about_button=Gtk.Button(label="About")
@@ -134,20 +132,16 @@ class MyWindow(Gtk.Window):
         hbox2.pack_start(about_button, True, True, 0)
         
         # Create close button
-        Close_button = Gtk.Button(label="Close")
+        Close_button = Gtk.Button(label="Quit")
         Close_button.connect("clicked",self.window_close)
         hbox2.pack_start(Close_button, True, True, 0)
         
         # Add the hbox2 to the vbox container
         vbox.pack_start(hbox2, False, True, 0)
 
-        
-        
-
-        
-
         self.current_question_index = -1
         self.wrong=False
+        self.excellent=0
         
         # Create a playbin element with the name 'player' and assign it to self.player
         self.player = Gst.ElementFactory.make('playbin', 'player')
@@ -195,7 +189,7 @@ class MyWindow(Gtk.Window):
     
     # Function to covert the signs to text
     def convert_signs(self, text):
-        return text.replace("+"," plus ").replace("-"," minus ").replace("x"," multiply ").replace("/"," devided by ")
+        return text.replace("+"," plus ").replace("-"," minus ").replace("*"," multiply ").replace("/"," devided by ")
 
     
     # Function to display the question and corresponding images and sounds
@@ -216,11 +210,13 @@ class MyWindow(Gtk.Window):
                 
                 print(time_taken)
                 if  time_taken < time_alotted:
+                    self.excellent=self.excellent+3
                     self.spd_cli.speak("Excellent!")
                     self.label.set_text("Excellent!")
                     self.set_image("positive2.png")
                     self.play_file('excellent.ogg')
                 elif time_taken < time_alotted+2:
+                    self.excellent=self.excellent+2
                     self.spd_cli.speak("Very good!")
                     self.label.set_text("Very good!")
                     self.set_image("positive5.png")
@@ -231,15 +227,19 @@ class MyWindow(Gtk.Window):
                     self.set_image("positive9.png")
                     self.play_file('next_level_6.ogg')
                 elif time_taken < time_alotted+6:
+                    self.excellent=0
                     self.spd_cli.speak("Not bad!")
                     self.label.set_text("Not bad!")
                     self.set_image("positive1.png")
                     self.play_file('ok.ogg')
+                    
                 else :
+                    self.excellent=-1
                     self.spd_cli.speak("Okay!")
                     self.label.set_text("Okay!")
                     self.set_image("neg3.png")
                     self.play_file('try_more_fast.ogg')
+                    
 
                 GLib.timeout_add_seconds(3,self.next_question)
                 
@@ -268,15 +268,38 @@ class MyWindow(Gtk.Window):
             self.set_image("neg5.png")
             self.wrong=False
         else:
-            self.current_question_index = self.current_question_index + 1
+
+            if self.excellent>=3 :
+                self.current_question_index = self.current_question_index + self.excellent
+                
+            else :
+                self.current_question_index = self.current_question_index + 1
             if self.current_question_index < len(self.list)-1:
                 print(len(self.list))
                 if("?" in self.list[self.current_question_index]):
                     question_to_pass = self.list[self.current_question_index].split("===")[0]
                     print("Question_to_pass : "+question_to_pass)
                     self.question = self.question_parser(question_to_pass)
-                    self.answer = str(eval(self.question))
+                    number = eval(self.question)
+                    if number==math.trunc(number):
+                            self.answer = str(math.trunc(number))
+                    else:
+                        num= round(eval(str(number)),2)
+                        self.answer = str(num)
+                    #self.answer = str(eval(self.question))
+                    #self.answer = int(self.answer)
+                    print(self.answer)
+                    
+                    
+                   
+                    #number=self.answer
+                    #rounded_number = np.round(self.answer, decimals=2)
+                    #print(rounded_number)
+                    
+
+                    
                 else:
+
                     self.question = self.list[self.current_question_index].split("===")[0]
                     self.answer = self.list[self.current_question_index].split("===")[1]
 
@@ -293,7 +316,8 @@ class MyWindow(Gtk.Window):
                 self.label.set_text("Successfully finished!")
                 self.set_image("positive7.png")
                 
-                
+ 
+    # Create random numbers
     def get_randome_number(self, value1, value2):
         if(int(value1) < int(value2)):
             return str(random.randint(int(value1),int(value2)))
@@ -312,9 +336,9 @@ class MyWindow(Gtk.Window):
 
             if(item.isdigit()):
                 if(second==False):
-                    digit_one = digit_one+item;
+                    digit_one = digit_one+item
                 else:
-                    digit_two = digit_two+item;
+                    digit_two = digit_two+item
             elif(item == ","):
                 second=True
             else:
@@ -335,13 +359,15 @@ class MyWindow(Gtk.Window):
                     else:
                         output = output+digit_one
         return output;
-
+    
+    # Function to Play bell sound according to the numbers
     def announce_question(self, question, make_sound):
         print(question, make_sound)
         if(make_sound == '1'):
             item_list = re.split(r'(\d+)', question)[1:-1]
             for item in item_list:
                 if item.isnumeric():
+
                     num = int(item)
                     while(num > 0):
                         num = num-1;
@@ -375,11 +401,12 @@ class MyWindow(Gtk.Window):
         
         about_dialog.run()
         about_dialog.destroy()
-
+    
+    
     def on_user_guide_clicked(self,button):
          print("USER-GUIDE")
 
-
+    # Load questions from choosed file
     def on_Load_Questions_clicked(self,widget):
         dialog = Gtk.FileChooserDialog(title="open", parent = self, action = Gtk.FileChooserAction.OPEN)
         dialog.add_buttons(Gtk.STOCK_CANCEL,Gtk.ResponseType.CANCEL,Gtk.STOCK_OPEN,Gtk.ResponseType.OK)
@@ -405,7 +432,7 @@ def main():
     win.connect("destroy", Gtk.main_quit)
     win.show_all()
     Gtk.main()
-
+.333
 
 if __name__ == "__main__":
     main()
