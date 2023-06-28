@@ -35,10 +35,13 @@ import threading
 import math
 import random
 
-class MyWindow(Gtk.Window):
+class MathsTutorWindow(Gtk.Window):
     def __init__(self):
         Gtk.Window.__init__(self, title="Maths-Tutor")
         self.set_border_width(10)
+        
+        # initialize Gstreamer
+        Gst.init(None)
         
         #Create a vertical box layout
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
@@ -100,7 +103,7 @@ class MyWindow(Gtk.Window):
         fix2 = Gtk.Fixed()
         hbox.pack_start(fix2, True, True, 0)
         
-        self.cwd = os.getcwd()
+        self.data_directory = "/usr/share/maths-tutor"
 
         
         #Create multiple instances of GtkImage and add them to the vertical box
@@ -158,14 +161,19 @@ class MyWindow(Gtk.Window):
         self.connect('delete-event', self.on_destroy)
         self.connect('destroy', self.on_destroy)
         
-        self.load_question_file(self.cwd+"/data.txt")
+        self.load_question_file(self.data_directory+"/data.txt")
+        
+        self.set_default_size(500,700)
+        self.connect("destroy", Gtk.main_quit)
+        self.show_all()
+        Gtk.main()
 
 
         
 
     #Function to play sounds
     def play_file(self, filename):
-        file_path_and_name = 'file:///'+self.cwd+'/sounds/'+filename
+        file_path_and_name = 'file:///'+self.data_directory+'/sounds/'+filename
         self.player.set_state(Gst.State.READY)
         self.player.set_property('uri',file_path_and_name)
         self.player.set_state(Gst.State.PLAYING)
@@ -173,7 +181,7 @@ class MyWindow(Gtk.Window):
     
     #Function to set image from file 
     def set_image(self, filename):
-	    self.image.set_from_file(self.cwd+"/Image/"+filename);
+	    self.image.set_from_file(self.data_directory+"/images/"+filename);
    
    
     #Function to read the questions fromt the file
@@ -425,14 +433,5 @@ class MyWindow(Gtk.Window):
     def window_close(self,button) :
         self.destroy()
 
-def main():
-    Gst.init(None)
-    win = MyWindow()
-    win.set_default_size(500,700)
-    win.connect("destroy", Gtk.main_quit)
-    win.show_all()
-    Gtk.main()
-.333
-
 if __name__ == "__main__":
-    main()
+    win = MathsTutorWindow()

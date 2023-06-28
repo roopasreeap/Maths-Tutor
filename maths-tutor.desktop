@@ -1,0 +1,10 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Categories=Game;
+Version=1.0
+Type=Application
+Terminal=false
+Exec=maths-tutor
+Name=Maths-Tutor
+Icon=/usr/share/maths-tutor/icon.jpg

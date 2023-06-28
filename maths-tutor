@@ -1,0 +1,6 @@
+#! /usr/bin/python3
+
+from MathsTutor.main import MathsTutorWindow
+
+if __name__ == "__main__":
+	MathsTutorWindow()
