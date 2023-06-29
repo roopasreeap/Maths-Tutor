@@ -145,6 +145,9 @@ class MathsTutorWindow(Gtk.Window):
         self.current_question_index = -1
         self.wrong=False
         self.excellent=0
+        self.final_score=0
+        self.incorrect_answer_count=0
+        
         
         # Create a playbin element with the name 'player' and assign it to self.player
         self.player = Gst.ElementFactory.make('playbin', 'player')
@@ -200,6 +203,7 @@ class MathsTutorWindow(Gtk.Window):
         return text.replace("+"," plus ").replace("-"," minus ").replace("*"," multiply ").replace("/"," devided by ")
 
     
+
     # Function to display the question and corresponding images and sounds
     def on_entry_activated(self,entry):
         if self.current_question_index == -1:
@@ -216,26 +220,32 @@ class MathsTutorWindow(Gtk.Window):
                 
                 time_alotted = int(self.list[self.current_question_index].split("===")[2])
                 
+                self.incorrect_answer_count=0
+                
                 print(time_taken)
                 if  time_taken < time_alotted:
                     self.excellent=self.excellent+3
+                    self.final_score=self.final_score+5
                     self.spd_cli.speak("Excellent!")
                     self.label.set_text("Excellent!")
                     self.set_image("positive2.png")
                     self.play_file('excellent.ogg')
                 elif time_taken < time_alotted+2:
                     self.excellent=self.excellent+2
+                    self.final_score=self.final_score+4
                     self.spd_cli.speak("Very good!")
                     self.label.set_text("Very good!")
                     self.set_image("positive5.png")
                     self.play_file('very_good.ogg')
                 elif time_taken < time_alotted+4:
+                    self.final_score=self.final_score+3
                     self.spd_cli.speak("Good!")
                     self.label.set_text("Good!")
                     self.set_image("positive9.png")
                     self.play_file('next_level_6.ogg')
                 elif time_taken < time_alotted+6:
                     self.excellent=0
+                    self.final_score=self.final_score+2
                     self.spd_cli.speak("Not bad!")
                     self.label.set_text("Not bad!")
                     self.set_image("positive1.png")
@@ -243,26 +253,31 @@ class MathsTutorWindow(Gtk.Window):
                     
                 else :
                     self.excellent=-1
+                    self.final_score=self.final_score+1
                     self.spd_cli.speak("Okay!")
                     self.label.set_text("Okay!")
                     self.set_image("neg3.png")
                     self.play_file('try_more_fast.ogg')
-                    
-
-                GLib.timeout_add_seconds(3,self.next_question)
-                
-               
 
             else:
-                
-                self.label.set_text("sorry,lets try again")
-                self.spd_cli.speak("Sorry!Let's try again")
-                #self.set_image("neg5.png")
-                
-                #time.sleep(3)
                 self.wrong=True
-                GLib.timeout_add_seconds(3,self.next_question)
-                self.entry.set_text("")
+                self.final_score=self.final_score-1
+                self.incorrect_answer_count=self.incorrect_answer_count+1
+                if self.incorrect_answer_count==3:
+                    text = "Sorry! the correct answer is "
+                    self.label.set_text(text+self.answer)
+                    if(len(self.answer.split(".")) > 1):
+                        li = list(self.answer.split(".")[1])
+                        self.spd_cli.speak(text+self.answer.split(".")[0]+"."+" ".join(li))
+                    else:
+                        self.spd_cli.speak(text+self.answer)
+                    
+                else :
+                    self.label.set_text("Sorry! let's try again")
+                    self.spd_cli.speak("Sorry! let's try again")
+                    self.set_image("neg5.png")
+            GLib.timeout_add_seconds(3,self.next_question)
+            self.entry.set_text("")
             
     
     # Function to set next question        
@@ -277,7 +292,7 @@ class MathsTutorWindow(Gtk.Window):
             self.wrong=False
         else:
 
-            if self.excellent>=3 :
+            if self.excellent >= 3 :
                 self.current_question_index = self.current_question_index + self.excellent
                 
             else :
@@ -294,20 +309,8 @@ class MathsTutorWindow(Gtk.Window):
                     else:
                         num= round(eval(str(number)),2)
                         self.answer = str(num)
-                    #self.answer = str(eval(self.question))
-                    #self.answer = int(self.answer)
                     print(self.answer)
-                    
-                    
-                   
-                    #number=self.answer
-                    #rounded_number = np.round(self.answer, decimals=2)
-                    #print(rounded_number)
-                    
-
-                    
                 else:
-
                     self.question = self.list[self.current_question_index].split("===")[0]
                     self.answer = self.list[self.current_question_index].split("===")[1]
 
@@ -320,11 +323,12 @@ class MathsTutorWindow(Gtk.Window):
                 self.entry.set_text("")
                 self.set_image("neg1.png")
             else:
-                self.spd_cli.speak("Successfully finished!")
-                self.label.set_text("Successfully finished!")
+                text = "Successfully finished! Your score is "+str(self.final_score);
+                self.spd_cli.speak(text)
+                self.label.set_text(text)
                 self.set_image("positive7.png")
                 
- 
+
     # Create random numbers
     def get_randome_number(self, value1, value2):
         if(int(value1) < int(value2)):
