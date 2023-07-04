@@ -158,7 +158,8 @@ class MathsTutorWindow(Gtk.Window):
         
         # Initialize speechd client
         self.spd_cli = speechd.Client("MathTeacher")
-        self.spd_cli.set_output_module("rhvoice")
+        #self.spd_cli.set_output_module("rhvoice")
+        self.spd_cli.set_output_module("swift-generic")
         self.spd_cli.speak(self.welcome_message)
         
         self.connect('delete-event', self.on_destroy)
@@ -207,13 +208,14 @@ class MathsTutorWindow(Gtk.Window):
     # Function to display the question and corresponding images and sounds
     def on_entry_activated(self,entry):
         if self.current_question_index == -1:
+            self.starting_time = time.time();
             self.next_question()
             
         else:
             answer = self.entry.get_text()
             correct_answer = self.answer
             
-            if answer.lower() == correct_answer.lower():                
+            if answer == correct_answer:                
                 time_end = time.time()
                 
                 time_taken = time_end - self.time_start
@@ -323,10 +325,15 @@ class MathsTutorWindow(Gtk.Window):
                 self.entry.set_text("")
                 self.set_image("neg1.png")
             else:
-                text = "Successfully finished! Your score is "+str(self.final_score);
+                minute, seconds = divmod(round(time.time()-self.starting_time), 60)
+                text = "Successfully finished! Your score is "+str(self.final_score)+\
+                "!\n Time taken "+str(minute)+" minutes and "+str(seconds)+" seconds!"+\
+                "\nPress enter to start again.";
                 self.spd_cli.speak(text)
                 self.label.set_text(text)
                 self.set_image("positive7.png")
+                self.current_question_index = -1
+                
                 
 
     # Create random numbers
@@ -388,8 +395,11 @@ class MathsTutorWindow(Gtk.Window):
                 else:
                     self.spd_cli.speak(self.convert_signs(item))
                     time.sleep(0.7)
+            self.spd_cli.speak("equals to? ")
         else:
-            self.spd_cli.speak(self.convert_signs(self.question))
+            self.play_file("question.ogg")
+            time.sleep(0.7)
+            self.spd_cli.speak(self.convert_signs(self.question)+" equals to ? ")
 
     def on_destroy(self, widget=None, *data):
         print("CLOSE")

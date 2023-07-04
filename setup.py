@@ -69,6 +69,7 @@ setup(name='MathsTutor',
       ('share/maths-tutor/sounds/',['sounds/coin.ogg']),
       ('share/maths-tutor/sounds/',['sounds/try_more_fast.ogg']),
       ('share/maths-tutor/sounds/',['sounds/next_level_2.ogg']),
+      ('share/maths-tutor/sounds/',['sounds/question.ogg']),
 
       ('share/applications/',['maths-tutor.desktop']),
       ('bin/',['maths-tutor'])]
