@@ -108,7 +108,7 @@ class MathsTutorWindow(Gtk.Window):
         
         #Create multiple instances of GtkImage and add them to the vertical box
         self.image = Gtk.Image()
-        self.set_image("positive4.png")
+        self.set_image("welcome", 3)
         vbox2.pack_start(self.image, True, True, 0)
 
         vbox.pack_start(vbox2, True, True, 0)
@@ -158,8 +158,7 @@ class MathsTutorWindow(Gtk.Window):
         
         # Initialize speechd client
         self.spd_cli = speechd.Client("MathTeacher")
-        #self.spd_cli.set_output_module("rhvoice")
-        self.spd_cli.set_output_module("swift-generic")
+        self.spd_cli.set_output_module("rhvoice")
         self.spd_cli.speak(self.welcome_message)
         
         self.connect('delete-event', self.on_destroy)
@@ -184,9 +183,10 @@ class MathsTutorWindow(Gtk.Window):
     
     
     #Function to set image from file 
-    def set_image(self, filename):
-	    self.image.set_from_file(self.data_directory+"/images/"+filename);
-   
+    def set_image(self, name, rand_range):
+	    value = str(random.randint(1, rand_range))
+	    self.image.set_from_file(self.data_directory+"/images/"+name+"-"+value+".gif");
+	    print(self.data_directory+"/images/"+name+"-"+value+".gif")
    
     #Function to read the questions fromt the file
     def load_question_file(self, file_path):
@@ -230,27 +230,27 @@ class MathsTutorWindow(Gtk.Window):
                     self.final_score=self.final_score+5
                     self.spd_cli.speak("Excellent!")
                     self.label.set_text("Excellent!")
-                    self.set_image("positive2.png")
+                    self.set_image("excellent", 3)
                     self.play_file('excellent.ogg')
                 elif time_taken < time_alotted+2:
                     self.excellent=self.excellent+2
                     self.final_score=self.final_score+4
                     self.spd_cli.speak("Very good!")
                     self.label.set_text("Very good!")
-                    self.set_image("positive5.png")
+                    self.set_image("very-good", 3)
                     self.play_file('very_good.ogg')
                 elif time_taken < time_alotted+4:
                     self.final_score=self.final_score+3
                     self.spd_cli.speak("Good!")
                     self.label.set_text("Good!")
-                    self.set_image("positive9.png")
+                    self.set_image("good", 3)
                     self.play_file('next_level_6.ogg')
                 elif time_taken < time_alotted+6:
                     self.excellent=0
                     self.final_score=self.final_score+2
                     self.spd_cli.speak("Not bad!")
                     self.label.set_text("Not bad!")
-                    self.set_image("positive1.png")
+                    self.set_image("not-bad", 3)
                     self.play_file('ok.ogg')
                     
                 else :
@@ -258,7 +258,7 @@ class MathsTutorWindow(Gtk.Window):
                     self.final_score=self.final_score+1
                     self.spd_cli.speak("Okay!")
                     self.label.set_text("Okay!")
-                    self.set_image("neg3.png")
+                    self.set_image("okay", 3)
                     self.play_file('try_more_fast.ogg')
 
             else:
@@ -266,6 +266,7 @@ class MathsTutorWindow(Gtk.Window):
                 self.final_score=self.final_score-1
                 self.incorrect_answer_count=self.incorrect_answer_count+1
                 if self.incorrect_answer_count==3:
+                    self.set_image("wrong-anwser-repeted", 2)
                     text = "Sorry! the correct answer is "
                     self.label.set_text(text+self.answer)
                     if(len(self.answer.split(".")) > 1):
@@ -277,7 +278,7 @@ class MathsTutorWindow(Gtk.Window):
                 else :
                     self.label.set_text("Sorry! let's try again")
                     self.spd_cli.speak("Sorry! let's try again")
-                    self.set_image("neg5.png")
+                    self.set_image("wrong-anwser", 3)
             GLib.timeout_add_seconds(3,self.next_question)
             self.entry.set_text("")
             
@@ -290,7 +291,7 @@ class MathsTutorWindow(Gtk.Window):
         if self.wrong==True:
             self.label.set_text(self.question)
             self.announce_question(self.question, self.make_sound)
-            self.set_image("neg5.png")
+            self.set_image("wrong-anwser", 3)
             self.wrong=False
         else:
 
@@ -323,7 +324,7 @@ class MathsTutorWindow(Gtk.Window):
                 threading.Thread(target=self.announce_question,args=[self.question, self.make_sound]).start()
                 
                 self.entry.set_text("")
-                self.set_image("neg1.png")
+                self.set_image("question", 2)
             else:
                 minute, seconds = divmod(round(time.time()-self.starting_time), 60)
                 text = "Successfully finished! Your score is "+str(self.final_score)+\
@@ -331,7 +332,7 @@ class MathsTutorWindow(Gtk.Window):
                 "\nPress enter to start again.";
                 self.spd_cli.speak(text)
                 self.label.set_text(text)
-                self.set_image("positive7.png")
+                self.set_image("finished", 3)
                 self.current_question_index = -1
                 
                 
