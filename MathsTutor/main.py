@@ -271,7 +271,7 @@ class MathsTutorWindow(Gtk.Window):
                     self.label.set_text(text+self.answer)
                     if(len(self.answer.split(".")) > 1):
                         li = list(self.answer.split(".")[1])
-                        self.spd_cli.speak(text+self.answer.split(".")[0]+"."+" ".join(li))
+                        self.spd_cli.speak(text+self.answer.split(".")[0]+" point "+" ".join(li))
                     else:
                         self.spd_cli.speak(text+self.answer)
                     
