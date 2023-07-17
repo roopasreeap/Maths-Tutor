@@ -159,7 +159,7 @@ class MathsTutorWindow(Gtk.Window):
         # Initialize speechd client
         self.spd_cli = speechd.Client("MathTeacher")
         self.spd_cli.set_output_module("rhvoice")
-        self.spd_cli.speak(self.welcome_message)
+        self.speak(self.welcome_message)
         
         self.connect('delete-event', self.on_destroy)
         self.connect('destroy', self.on_destroy)
@@ -192,6 +192,11 @@ class MathsTutorWindow(Gtk.Window):
 	    value = str(random.randint(1, rand_range))
 	    self.image.set_from_file(self.data_directory+"/images/"+name+"-"+value+".gif");
 	    print(self.data_directory+"/images/"+name+"-"+value+".gif")
+
+    def speak(self, text, enqueue=False):
+        if(enqueue == False):
+            self.spd_cli.cancel();
+        self.spd_cli.speak(text)
    
     #Function to read the questions fromt the file
     def load_question_file(self, file_path):
@@ -214,6 +219,10 @@ class MathsTutorWindow(Gtk.Window):
     def on_entry_activated(self,entry):
         if self.current_question_index == -1:
             self.starting_time = time.time();
+            self.wrong=False
+            self.excellent=0
+            self.final_score=0
+            self.incorrect_answer_count=0
             self.next_question()
             
         else:
@@ -233,27 +242,27 @@ class MathsTutorWindow(Gtk.Window):
                 if  time_taken < time_alotted:
                     self.excellent=self.excellent+3
                     self.final_score=self.final_score+5
-                    self.spd_cli.speak("Excellent!")
+                    self.speak("Excellent!")
                     self.label.set_text("Excellent!")
                     self.set_image("excellent", 3)
                     self.play_file("excellent", 3)
                 elif time_taken < time_alotted+2:
                     self.excellent=self.excellent+2
                     self.final_score=self.final_score+4
-                    self.spd_cli.speak("Very good!")
+                    self.speak("Very good!")
                     self.label.set_text("Very good!")
                     self.set_image("very-good", 3)
                     self.play_file("very-good", 3)
                 elif time_taken < time_alotted+4:
                     self.final_score=self.final_score+3
-                    self.spd_cli.speak("Good!")
+                    self.speak("Good!")
                     self.label.set_text("Good!")
                     self.set_image("good", 3)
                     self.play_file("good", 3)
                 elif time_taken < time_alotted+6:
                     self.excellent=0
                     self.final_score=self.final_score+2
-                    self.spd_cli.speak("Not bad!")
+                    self.speak("Not bad!")
                     self.label.set_text("Not bad!")
                     self.set_image("not-bad", 3)
                     self.play_file('not-bad', 3)
@@ -261,7 +270,7 @@ class MathsTutorWindow(Gtk.Window):
                 else :
                     self.excellent=-1
                     self.final_score=self.final_score+1
-                    self.spd_cli.speak("Okay!")
+                    self.speak("Okay!")
                     self.label.set_text("Okay!")
                     self.set_image("okay", 3)
                     self.play_file('okay', 3)
@@ -273,17 +282,18 @@ class MathsTutorWindow(Gtk.Window):
                 if self.incorrect_answer_count==3:
                     self.set_image("wrong-anwser-repeted", 2)
                     self.play_file("wrong-anwser-repeted", 3)
+                    self.incorrect_answer_count = 0
                     text = "Sorry! the correct answer is "
                     self.label.set_text(text+self.answer)
                     if(len(self.answer.split(".")) > 1):
                         li = list(self.answer.split(".")[1])
-                        self.spd_cli.speak(text+self.answer.split(".")[0]+" point "+" ".join(li))
+                        self.speak(text+self.answer.split(".")[0]+" point "+" ".join(li))
                     else:
-                        self.spd_cli.speak(text+self.answer)
+                        self.speak(text+self.answer)
                     
                 else :
                     self.label.set_text("Sorry! let's try again")
-                    self.spd_cli.speak("Sorry! let's try again")
+                    self.speak("Sorry! let's try again")
                     self.set_image("wrong-anwser", 3)
                     self.play_file("wrong-anwser", 3)
             GLib.timeout_add_seconds(3,self.next_question)
@@ -297,7 +307,7 @@ class MathsTutorWindow(Gtk.Window):
         
         if self.wrong==True:
             self.label.set_text(self.question)
-            self.announce_question(self.question, self.make_sound)
+            threading.Thread(target=self.announce_question,args=[self.question, self.make_sound, self.current_question_index]).start()
             self.set_image("wrong-anwser", 3)
             self.wrong=False
         else:
@@ -325,19 +335,17 @@ class MathsTutorWindow(Gtk.Window):
                     self.answer = self.list[self.current_question_index].split("===")[1]
 
                 self.make_sound = self.list[self.current_question_index].split("===")[3]
-                self.label.set_text(self.question)
-                #self.announce_question(self.question, self.make_sound)
-                
-                threading.Thread(target=self.announce_question,args=[self.question, self.make_sound]).start()
+                self.label.set_text(self.question)                
+                threading.Thread(target=self.announce_question,args=[self.question, self.make_sound, self.current_question_index]).start()
                 
                 self.entry.set_text("")
                 self.set_image("question", 2)
             else:
                 minute, seconds = divmod(round(time.time()-self.starting_time), 60)
                 text = "Successfully finished! Your score is "+str(self.final_score)+\
-                "!\n Time taken "+str(minute)+" minutes and "+str(seconds)+" seconds!"+\
+                "!\nTime taken "+str(minute)+" minutes and "+str(seconds)+" seconds!"+\
                 "\nPress enter to start again.";
-                self.spd_cli.speak(text)
+                self.speak(text)
                 self.label.set_text(text)
                 self.set_image("finished", 3)
                 self.play_file("finished", 3)
@@ -389,11 +397,15 @@ class MathsTutorWindow(Gtk.Window):
         return output;
     
     # Function to Play bell sound according to the numbers
-    def announce_question(self, question, make_sound):
+    def announce_question(self, question, make_sound, announcing_question_index):
         print(question, make_sound)
         if(make_sound == '1'):
             item_list = re.split(r'(\d+)', question)[1:-1]
             for item in item_list:
+                # To prevent announcement on user answer
+                if(announcing_question_index != self.current_question_index):
+                    print("STOOOOOOOPPPPPPPPPP")
+                    return;
                 if item.isnumeric():
 
                     num = int(item)
@@ -402,13 +414,14 @@ class MathsTutorWindow(Gtk.Window):
                         self.play_file("coin")
                         time.sleep(0.7)
                 else:
-                    self.spd_cli.speak(self.convert_signs(item))
+                    self.speak(self.convert_signs(item))
                     time.sleep(0.7)
-            self.spd_cli.speak("equals to? ")
+            if(announcing_question_index != self.current_question_index):
+                self.speak("equals to? ")
         else:
             self.play_file("question")
             time.sleep(0.7)
-            self.spd_cli.speak(self.convert_signs(self.question)+" equals to ? ")
+            self.speak(self.convert_signs(self.question)+" equals to ? ")
 
     def on_destroy(self, widget=None, *data):
         print("CLOSE")
@@ -446,7 +459,7 @@ class MathsTutorWindow(Gtk.Window):
             filename = dialog.get_filename()
             self.load_question_file(filename)
             self.label.set_text(self.welcome_message)
-            self.spd_cli.speak(self.welcome_message)
+            self.speak(self.welcome_message)
             self.entry.grab_focus()
             print(filename)
         
