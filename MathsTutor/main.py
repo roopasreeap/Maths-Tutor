@@ -153,7 +153,7 @@ class MathsTutorWindow(Gtk.Window):
         self.player = Gst.ElementFactory.make('playbin', 'player')
         
         # Playing starting sound
-        self.play_file('start.ogg')
+        self.play_file('welcome')
         
         
         # Initialize speechd client
@@ -175,8 +175,13 @@ class MathsTutorWindow(Gtk.Window):
         
 
     #Function to play sounds
-    def play_file(self, filename):
-        file_path_and_name = 'file:///'+self.data_directory+'/sounds/'+filename
+    def play_file(self, name, rand_range=1):
+        print("Playing file " + name + " rand ="+str(rand_range));
+        if(rand_range == 1):
+            file_path_and_name = 'file:///'+self.data_directory+'/sounds/'+name+".ogg";
+        else:
+            value = str(random.randint(1, rand_range))
+            file_path_and_name = 'file:///'+self.data_directory+'/sounds/'+name+"-"+value+".ogg";
         self.player.set_state(Gst.State.READY)
         self.player.set_property('uri',file_path_and_name)
         self.player.set_state(Gst.State.PLAYING)
@@ -231,27 +236,27 @@ class MathsTutorWindow(Gtk.Window):
                     self.spd_cli.speak("Excellent!")
                     self.label.set_text("Excellent!")
                     self.set_image("excellent", 3)
-                    self.play_file('excellent.ogg')
+                    self.play_file("excellent", 3)
                 elif time_taken < time_alotted+2:
                     self.excellent=self.excellent+2
                     self.final_score=self.final_score+4
                     self.spd_cli.speak("Very good!")
                     self.label.set_text("Very good!")
                     self.set_image("very-good", 3)
-                    self.play_file('very_good.ogg')
+                    self.play_file("very-good", 3)
                 elif time_taken < time_alotted+4:
                     self.final_score=self.final_score+3
                     self.spd_cli.speak("Good!")
                     self.label.set_text("Good!")
                     self.set_image("good", 3)
-                    self.play_file('next_level_6.ogg')
+                    self.play_file("good", 3)
                 elif time_taken < time_alotted+6:
                     self.excellent=0
                     self.final_score=self.final_score+2
                     self.spd_cli.speak("Not bad!")
                     self.label.set_text("Not bad!")
                     self.set_image("not-bad", 3)
-                    self.play_file('ok.ogg')
+                    self.play_file('not-bad', 3)
                     
                 else :
                     self.excellent=-1
@@ -259,7 +264,7 @@ class MathsTutorWindow(Gtk.Window):
                     self.spd_cli.speak("Okay!")
                     self.label.set_text("Okay!")
                     self.set_image("okay", 3)
-                    self.play_file('try_more_fast.ogg')
+                    self.play_file('okay', 3)
 
             else:
                 self.wrong=True
@@ -267,6 +272,7 @@ class MathsTutorWindow(Gtk.Window):
                 self.incorrect_answer_count=self.incorrect_answer_count+1
                 if self.incorrect_answer_count==3:
                     self.set_image("wrong-anwser-repeted", 2)
+                    self.play_file("wrong-anwser-repeted", 3)
                     text = "Sorry! the correct answer is "
                     self.label.set_text(text+self.answer)
                     if(len(self.answer.split(".")) > 1):
@@ -279,6 +285,7 @@ class MathsTutorWindow(Gtk.Window):
                     self.label.set_text("Sorry! let's try again")
                     self.spd_cli.speak("Sorry! let's try again")
                     self.set_image("wrong-anwser", 3)
+                    self.play_file("wrong-anwser", 3)
             GLib.timeout_add_seconds(3,self.next_question)
             self.entry.set_text("")
             
@@ -333,6 +340,7 @@ class MathsTutorWindow(Gtk.Window):
                 self.spd_cli.speak(text)
                 self.label.set_text(text)
                 self.set_image("finished", 3)
+                self.play_file("finished", 3)
                 self.current_question_index = -1
                 
                 
@@ -391,14 +399,14 @@ class MathsTutorWindow(Gtk.Window):
                     num = int(item)
                     while(num > 0):
                         num = num-1;
-                        self.play_file('coin.ogg')
+                        self.play_file("coin")
                         time.sleep(0.7)
                 else:
                     self.spd_cli.speak(self.convert_signs(item))
                     time.sleep(0.7)
             self.spd_cli.speak("equals to? ")
         else:
-            self.play_file("question.ogg")
+            self.play_file("question")
             time.sleep(0.7)
             self.spd_cli.speak(self.convert_signs(self.question)+" equals to ? ")
 
